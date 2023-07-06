@@ -9,9 +9,7 @@ app_server <- function(input, output, session) {
 
   shiny.router::router_server()
 
-
-  df <- mtcars %>%
-    ggsankey::make_long(cyl, vs, am, gear, carb)
+  df <- readRDS("inst/app/www/data.rds")
 
   output$plot <- renderPlot({
 

@@ -1,11 +1,13 @@
 name: bhidatalink
-title:
+title: BHIdatalink
 username:
 account: nicholassunderland
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 9413652
-bundleId: 7424530
+bundleId: 7428897
 url: https://nicholassunderland.shinyapps.io/BHIdatalink/
-when: 1688599918.97288
-lastSyncTime: 1688599918.97289
+when: 1688684583.72192
+lastSyncTime: 1688684583.72195
+asMultiple: FALSE
+asStatic: FALSE
