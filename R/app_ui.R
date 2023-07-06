@@ -21,10 +21,10 @@ app_ui <- function(request) {
 
       # Set the overall layout of the page
       shiny::div(class = "grid-container",
-                 shiny::div(class = "header", BHIdatalink:::header()),
-                 shiny::div(class = "sidenav", BHIdatalink:::navigation()),
-                 shiny::div(class = "main", BHIdatalink:::main_page_router()),
-                 shiny::div(class = "footer", BHIdatalink:::footer())
+                 shiny::div(class = "header", header()),
+                 shiny::div(class = "sidenav", navigation()),
+                 shiny::div(class = "main", main_page_router()),
+                 shiny::div(class = "footer", footer())
       )
     )
   )
