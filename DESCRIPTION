@@ -11,7 +11,7 @@ Imports:
     DT,
     glue,
     golem (>= 0.4.1),
-    pkgload,
+    plotly,
     shinipsum,
     shiny (>= 1.7.4),
     shiny.fluent,
