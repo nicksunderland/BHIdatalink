@@ -7,33 +7,56 @@
 #' @noRd
 app_server <- function(input, output, session) {
 
+  # Do the routing to different pages via the naigation panel
   shiny.router::router_server()
 
-  df <- readRDS("inst/app/www/data.rds")
+  # Reactives are essentially functions that get called when needed
+  data <- reactive({
+    # connect to the database
+    con <- odbc::dbConnect(odbc::odbc(), dsn="cardiology_db")
+
+    # Get the data
+    admissions <- dplyr::tbl(con, "admissions")
+    orders <- dplyr::tbl(con, "orders")
+    procedures <- dplyr::tbl(con, "procedures")
+
+    # Convert to data.frame
+    d <- data.frame(admissions)
+         # "orders" = data.frame(orders),
+         # "procedures" = data.frame(procedures))
+
+    # Disconnect from the DB
+    odbc::dbDisconnect(con)
+
+    return(d)
+  })
 
   output$plot <- renderPlot({
 
-    # Generate a new histogram at timed intervals, but not when
-    # input$n changes.
-    output$plot <- renderPlot({
-      # Re-execute this reactive expression after 2000 milliseconds
-      invalidateLater(5000)
-      df$node = df$node + 10*runif(length(df$node))
-      df$node = ifelse(df$node>100, 0, round(df$node))
-      df$next_node = df$next_node + 10*runif(length(df$next_node))
-      df$next_node = ifelse(df$next_node>100, 0, round(df$next_node))
-      ggplot2::ggplot(isolate(df), ggplot2::aes(x = x,
-                     next_x = next_x,
-                     node = node,
-                     next_node = next_node,
-                     fill = factor(node),
-                     label = node)) +
-        ggsankey::geom_sankey(flow.alpha = 0.5, node.color = 1) +
-        ggsankey::geom_sankey_label(size = 3.5, color = 1, fill = "white") +
-        ggplot2::scale_fill_viridis_d(option = "A", alpha = 0.95) +
-        ggsankey::theme_sankey(base_size = 16)
-      #shinipsum::random_ggplot()
-    })
+    ggplot2::ggplot(data(), ggplot2::aes(x = consultant)) +
+      ggplot2::geom_bar()
+
+    # # Generate a new histogram at timed intervals, but not when
+    # # input$n changes.
+    # output$plot <- renderPlot({
+    #   # Re-execute this reactive expression after 2000 milliseconds
+    #   invalidateLater(5000)
+    #   df$node = df$node + 10*runif(length(df$node))
+    #   df$node = ifelse(df$node>100, 0, round(df$node))
+    #   df$next_node = df$next_node + 10*runif(length(df$next_node))
+    #   df$next_node = ifelse(df$next_node>100, 0, round(df$next_node))
+    #   ggplot2::ggplot(isolate(df), ggplot2::aes(x = x,
+    #                  next_x = next_x,
+    #                  node = node,
+    #                  next_node = next_node,
+    #                  fill = factor(node),
+    #                  label = node)) +
+    #     ggsankey::geom_sankey(flow.alpha = 0.5, node.color = 1) +
+    #     ggsankey::geom_sankey_label(size = 3.5, color = 1, fill = "white") +
+    #     ggplot2::scale_fill_viridis_d(option = "A", alpha = 0.95) +
+    #     ggsankey::theme_sankey(base_size = 16)
+    #   #shinipsum::random_ggplot()
+    # })
 
   })
 
