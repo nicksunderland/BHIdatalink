@@ -10,7 +10,7 @@ main_page_router <- function() {
 
   # create the router, adding the functions that create the different pages
   central_page_router <- router_ui(
-    route(path="/",       ui=home_page()),
+    route(path="/",       ui=ward_overview_page()),
     route(path="cathlab", ui=cathlab_page())
   )
 
