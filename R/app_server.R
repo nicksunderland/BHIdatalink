@@ -37,7 +37,7 @@ app_server <- function(input, output, session) {
     # Disconnect from the DB
     dbDisconnect(con)
     # return the data
-    return(orders)
+    return(order_data)
   })
 
   procedure_data <- reactive({
@@ -94,8 +94,6 @@ app_server <- function(input, output, session) {
     # return the data
     return(cath_lab_data)
   })
-
-
 
   output$ward_counts <- renderPlot({
     admission_data() |>
@@ -158,7 +156,7 @@ app_server <- function(input, output, session) {
             legend.direction = "horizontal",
             legend.text = element_text(size = 14),
             legend.margin = margin(t = 0, b = -10, unit = "pt")) +
-      geom_text(aes(label = paste0(round(pct*100), "% (n=", count, ")")),
+      geom_text(aes(label = paste0(round(.data$pct*100), "% (n=", .data$count, ")")),
                 position = position_stack(vjust = 0.5),
                 size = 6)
   })
