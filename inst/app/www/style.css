@@ -1,6 +1,6 @@
 .grid-container {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 200px auto;
   grid-template-rows: 54px 1fr 45px;
   grid-template-areas: "header header" "sidenav main" "footer footer";
   height: 100vh;
@@ -18,7 +18,7 @@
   background-color: #faf9f8;
   padding-left: 40px;
   padding-right: 32px;
-  max-width: calc(100vw - 400px);
+  max-width: 100%;
   max-height: calc(100vh - 100px);
   overflow: auto;
 }

@@ -17,8 +17,8 @@ ward_overview_page <- function() {
     tags$hr(),
     # Some text
     tableOutput(outputId="text"),
-    # Line break
-    tags$br(),
+    # Header title
+    tags$h3("Current ward patient numbers"),
     # Ward overview plots
     fluidRow(
       column(
@@ -37,21 +37,36 @@ ward_overview_page <- function() {
         mainPanel(plotOutput(outputId="ward_counts"))
       )
     ),
+    # Header title
+    tags$h3("Length of stay"),
+    # Length of stay plot
+    fluidRow(
+      column(
+        width = 12,
+        align = "centre",
+        prettyRadioButtons(inputId = "los_grouping_variable",
+                           label = "Select Grouping:",
+                           choiceNames = c("Ward", "Consultant"),
+                           choiceValues = c("ward", "consultant"),
+                           selected = "ward",
+                           inline = TRUE,
+                           animation = "smooth")
+      ),
+      column(
+        width = 12,
+        tags$h4("*drag and select to explore data points", style = "color: red; font-size: 11px;")
+      ),
+      column(
+        width = 12,
+        mainPanel(plotOutput(outputId = "length_of_stay",
+                             brush = "length_of_stay_plot_brush"))
+      ),
+      tableOutput("length_of_stay_table")
+    ),
     # Line break
-    tags$br(),
-    # A table title
-    h2("Some important data table"),
-    # Horizontal line
-    tags$hr(),
-    # The table
-    DTOutput(outputId="data_table"),
+    tags$br()
   )
 
-  # internal makePage function to standardise colours, fonts, etc
-  # page <- makePage(#title="BHI Datalink",
-  #                  #subtitle="live cardiology data insights",
-  #                  contents=content)
-
-  # return
+  # return the page
   return(content)
 }

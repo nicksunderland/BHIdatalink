@@ -3,21 +3,28 @@ Title: BHI Datalink
 Version: 0.0.0.9000
 Authors@R: 
     person("Nicholas", "Sunderland", , "nicholas.p.sunderland@gmail.com", role = c("cre", "aut"))
-Description: An R Shiny App to track pacemakers and ICDs at the Bristol
-    Heart Institute.
+Description: An R Shiny App to track cardiology data at the Bristol Heart Institute.
 License: MIT + file LICENSE
 Imports: 
     config (>= 0.3.1),
+    DBI,
+    dbplyr,
+    dplyr,
     DT,
     ggplot2,
-    ggsankey,
     glue,
     golem (>= 0.4.1),
-    plotly,
+    lubridate,
+    odbc,
+    rlang,
+    RSQLite,
     shinipsum,
     shiny (>= 1.7.4),
     shiny.fluent,
-    shiny.router
+    shiny.router,
+    shinyWidgets,
+    stringr,
+    wesanderson
 Suggests: 
     spelling,
     testthat (>= 3.0.0)

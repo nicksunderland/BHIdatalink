@@ -20,11 +20,11 @@ app_ui <- function(request) {
       ),
 
       # Set the overall layout of the page
-      shiny::div(class = "grid-container",
-                 shiny::div(class = "header", header()),
-                 shiny::div(class = "sidenav", navigation()),
-                 shiny::div(class = "main", main_page_router()),
-                 shiny::div(class = "footer", footer())
+      div(class = "grid-container",
+          div(class = "header", header()),
+          div(class = "sidenav", style = "width: 200px;", navigation()),
+          div(class = "main", style = "flex-grow: 1;", main_page_router()),
+          div(class = "footer", footer())
       )
     )
   )
