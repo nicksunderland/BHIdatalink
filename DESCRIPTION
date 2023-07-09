@@ -8,14 +8,14 @@ License: MIT + file LICENSE
 Imports: 
     config (>= 0.3.1),
     DBI,
-    dbplyr,
     dplyr,
-    DT,
     ggplot2,
     glue,
     golem (>= 0.4.1),
     lubridate,
+    magrittr,
     odbc,
+    purrr,
     rlang,
     RSQLite,
     shinipsum,
@@ -25,6 +25,8 @@ Imports:
     shinyWidgets,
     stringr,
     wesanderson
+Depends:
+    dbplyr
 Suggests: 
     spelling,
     testthat (>= 3.0.0)

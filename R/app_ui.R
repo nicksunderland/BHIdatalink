@@ -23,7 +23,7 @@ app_ui <- function(request) {
       div(class = "grid-container",
           div(class = "header", header()),
           div(class = "sidenav", style = "width: 200px;", navigation()),
-          div(class = "main", style = "flex-grow: 1;", main_page_router()),
+          div(class = "main", style = "flex-grow: 1;",  main_page_router()),
           div(class = "footer", footer())
       )
     )

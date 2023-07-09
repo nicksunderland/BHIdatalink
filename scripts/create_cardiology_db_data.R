@@ -47,6 +47,16 @@
 # )
 # procedures = left_join(procedures, orders, by="nhs_number") |>
 #   mutate(datetime = datetime + duration(sample(6:(24*7), nrow(procedures), replace=TRUE), units="hours"))
+# # 2000 more procedures
+# n = 2000
+# procedures = rbind(
+#   procedures,
+#   data.frame(
+#     "nhs_number" = sample(seq(9000000000, 9999999999), n, replace=FALSE),
+#     "datetime" = sample(seq(as.POSIXct("2022-07-30 12:00"), as.POSIXct("2023-07-01 12:00"), by="hour"), n, replace=FALSE),
+#     "type" = sample(procedure_types, n, replace=TRUE, prob=seq(0.8, 0.2, length.out=length(procedure_types)))
+#   )
+# )
 #
 # # MySQL database locally
 # con <- dbConnect(odbc::odbc(), dsn="cardiology_db")
@@ -62,7 +72,7 @@
 # dbWriteTable(con, "orders", orders, overwrite=TRUE)
 # dbWriteTable(con, "procedures", procedures, overwrite=TRUE)
 # dbDisconnect(con)
-
+#
 
 
 
