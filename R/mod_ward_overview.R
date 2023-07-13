@@ -51,9 +51,12 @@ mod_ward_overview_ui <- function(id){
       column(
         width = 12,
         mainPanel(plotOutput(outputId = ns("length_of_stay"),
-                             brush = "length_of_stay_plot_brush"))
+                             brush = ns("length_of_stay_plot_brush")))
       ),
-      tableOutput(outputId = ns("length_of_stay_table"))
+      column(
+        width = 12,
+        mainPanel(tableOutput(outputId = ns("length_of_stay_table")))
+      )
     ),
     # Line break
     tags$br()
@@ -114,17 +117,17 @@ mod_ward_overview_server <- function(id){
       # Require a click event to have happened
       req(input$length_of_stay_plot_brush)
       # Get the rows of the data frame based on the click info
-      brushedPoints(df    = length_of_stay_data(),
+      brushedPoints(df    = length_of_stay_data,
                     brush = input$length_of_stay_plot_brush,
                     xvar  = as.character(input$los_grouping_variable),
                     yvar  = "length_of_stay") |>
         # Mutate for nice formatting
         mutate(nhs_number     = format(floor(.data$nhs_number), nsmall=0),
-               datetime_start = format(as.POSIXct(.data$datetime_start), format="%d-%m-%Y %H:%M"),
+               datetime_start = format(as.POSIXct(.data$admission_datetime), format="%d-%m-%Y %H:%M"),
                length_of_stay = format(floor(.data$length_of_stay), nsmall=0)) |>
         # Rename table column names for nice formatting
         select("NHS number"     = .data$nhs_number,
-               "Admission date" = .data$datetime_start,
+               "Admission date" = .data$admission_datetime,
                "Consultant"     = .data$consultant,
                "Ward"           = .data$ward,
                "LoS (days)"     = .data$length_of_stay)

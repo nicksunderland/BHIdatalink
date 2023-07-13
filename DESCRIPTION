@@ -12,6 +12,7 @@ Imports:
     ggplot2,
     glue,
     golem (>= 0.4.1),
+    grDevices,
     lubridate,
     magrittr,
     odbc,
@@ -24,7 +25,9 @@ Imports:
     shiny.router,
     shinyWidgets,
     stringr,
-    wesanderson
+    tidyr,
+    wesanderson,
+    zoo
 Depends:
     dbplyr
 Suggests: 

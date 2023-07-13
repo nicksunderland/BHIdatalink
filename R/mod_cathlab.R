@@ -22,6 +22,18 @@ mod_cathlab_ui <- function(id){
     fluidRow(
       column(
         width = 12,
+        align = "centre",
+        prettyRadioButtons(inputId = ns("cathlab_awaiting_grouping_variable"),
+                           label = "Select Grouping:",
+                           choiceNames = c("Ward", "Consultant"),
+                           choiceValues = c("ward", "consultant"),
+                           selected = "ward",
+                           inline = TRUE,
+                           animation = "smooth")
+      ),
+      column(
+        width = 12,
+        align = "centre",
         mainPanel(plotOutput(outputId=ns("cath_lab_awaiting")))
       )
     ),
@@ -53,56 +65,14 @@ mod_cathlab_ui <- function(id){
       ),
       column(
         width = 12,
-        mainPanel(plotOutput(outputId=ns("cath_lab_activity")))
-      )
-    ),
-
-
-    # Header title
-    tags$h3("TBC - Procedure waiting time"),
-    # slider - days to analyse
-    # radiobuttons - all(stacked), angio etc
-    #3 waiting time: average violin next to line graph over last 30d, radiobuttons by type
-    fluidRow(
-      column(
-        width = 12,
-        align = "centre",
-        prettyRadioButtons(inputId = ns("cathlab_waiting_time_grouping_variable"),
-                           label = "Select Grouping:",
-                           choiceNames = c("All", "Angiogram", "Device", "Other"),
-                           choiceValues = c("all", "angiogram", "device", "other"),
-                           selected = "all",
-                           inline = TRUE,
-                           animation = "smooth")
+        mainPanel(plotOutput(outputId=ns("cath_lab_activity"),
+                             brush = ns("cath_lab_activity_plot_brush")))
       ),
       column(
         width = 12,
-        mainPanel(plotOutput(outputId=ns("cath_lab_waiting_time")))
+        mainPanel(tableOutput(outputId = ns("cath_lab_activity_table")))
       )
-    ),
-
-
-    # Header title
-    tags$h3("TBC - Procedure to discharge time"),
-    # radiobuttons - all(stacked), angio etc
-    #4 procedure to discharge time: average violin next to line average over last X days
-    fluidRow(
-      column(
-        width = 12,
-        align = "centre",
-        prettyRadioButtons(inputId = ns("cathlab_proc_to_dis_time_grouping_variable"),
-                           label = "Select Grouping:",
-                           choiceNames = c("All", "Angiogram", "Device", "Other"),
-                           choiceValues = c("all", "angiogram", "device", "other"),
-                           selected = "all",
-                           inline = TRUE,
-                           animation = "smooth")
-      ),
-      column(
-        width = 12,
-        mainPanel(plotOutput(outputId=ns("cath_lab_proc_to_dis_time")))
-      )
-    ),
+    )
   )
 }
 
@@ -152,7 +122,13 @@ mod_cathlab_ui <- function(id){
 
 #' cathlab Server Functions
 #'
+#' @importFrom stringr str_to_upper str_to_title
 #' @importFrom dplyr bind_rows
+#' @importFrom zoo rollmean
+#' @importFrom grDevices colorRampPalette
+#' @importFrom dplyr arrange ungroup coalesce first
+#' @importFrom tidyr complete
+#' @importFrom lubridate time_length interval
 #' @noRd
 #'
 mod_cathlab_server <- function(id){
@@ -186,30 +162,39 @@ mod_cathlab_server <- function(id){
     cath_lab_activity_data <- .tmp_cath_lab_activity_data |>
       group_by(.data$date, .data$procedure_type) |>
       summarise(count = n()) |>
-      bind_rows(.tmp_cath_lab_activity_all)
+      bind_rows(.tmp_cath_lab_activity_all) |>
+      mutate(procedure_type = factor(.data$procedure_type,
+                                     levels=c("all", unique(.data$procedure_type)[!unique(.data$procedure_type)=="all"]))) |>
+      ungroup() |>
+      complete(.data$date, .data$procedure_type, fill=list(count=0))
+
 
     # Pie chart showing % of patients awaiting a procedure
     output$cath_lab_awaiting <- renderPlot({
+
+      grouping <- as.character(input$cathlab_awaiting_grouping_variable)
+      n_groups <- length(unique(cath_lab_orders_data[[grouping]]))
+      format_labs <- function(x, grouping) {
+        if (grouping == "ward") {
+          str_to_upper(x)
+        } else if (grouping == "consultant") {
+          str_to_title(x)
+        } else {
+          "error"
+        }
+      }
+
       cath_lab_orders_data |>
         group_by(.data$awaiting) |>
-        summarise(count = n()) |>
-        mutate(pct = .data$count / sum(.data$count)) |>
-        ggplot(aes(x = "",
-                   y = .data$pct,
-                   fill = .data$awaiting)) +
-        geom_bar(stat="identity", width=1, color="white") +
-        coord_polar("y", start=0) +
-        theme_void() +
-        scale_fill_manual(values = wes_palette(n = 2, name = "GrandBudapest1")[1:2],
-                          labels = c("None or complete", "Pending")) +
-        labs(fill = "") +
-        theme(legend.position = "top",
-              legend.direction = "horizontal",
-              legend.text = element_text(size = 14),
-              legend.margin = margin(t = 0, b = -10, unit = "pt")) +
-        geom_text(aes(label = paste0(round(.data$pct*100), "% (n=", .data$count, ")")),
-                  position = position_stack(vjust = 0.5),
-                  size = 6)
+        ggplot(aes(x = .data[[grouping]],
+                   # y = ..count..,
+                   fill = .data[[grouping]])) +
+        geom_bar(stat="count") +
+        scale_x_discrete(labels = function(x) format_labs(x, grouping)) +
+        scale_fill_manual(values = colorRampPalette(wes_palette(n=4, name = "GrandBudapest1"))(n_groups)) +
+        ylab("Number of patients") +
+        xlab("") +
+        theme(legend.position = "none")
     })
 
     output$cath_lab_activity <- renderPlot({
@@ -217,29 +202,67 @@ mod_cathlab_server <- function(id){
       grouping <- as.character(input$cathlab_activity_grouping_variable)
       today <- as.Date("2023-07-30")
       win_start <- today - input$cathlab_activity_slider
+      win_len <- time_length(interval(win_start, today), unit="days")
+      # line_smooth_k <- ifelse(win_len < 7, 2, 7)
+      num_proc_types <- length(unique(cath_lab_activity_data$procedure_type))
+      colours <- colorRampPalette(wes_palette(n=5, name = "Darjeeling1"))(num_proc_types)
+      names(colours) <- levels(cath_lab_activity_data$procedure_type)
+      colours <- if(grouping=="all") colours else colours[grouping]
 
       cath_lab_activity_data |>
+        group_by(.data$procedure_type) |>
+        arrange(.data$date) |>
+        mutate(roll_mean = rollmean(.data$count, k=7, align = "right", fill=NA),
+               roll_mean = coalesce(.data$roll_mean, first(.data$roll_mean, na_rm=TRUE))) |>
         filter(date > win_start) %>%
         {if(grouping!="all") filter(., .data$procedure_type==grouping) else .} |>
         ggplot(aes(x     = .data$date,
                    y     = .data$count,
-                   color = .data$procedure_type)) +
-        geom_point(shape=21, size=5, color="black", aes(fill=.data$procedure_type)) +
-        geom_line(aes(color = .data$procedure_type)) +
-        scale_color_viridis_d(option="inferno", end = 0.9) +
+                   color = .data$procedure_type,
+                   fill  = .data$procedure_type)) +
+        geom_point(shape=21, size=1) +
+        geom_line(aes(y=.data$roll_mean)) +
+        scale_fill_manual(values = colours,
+                          labels = function(x) str_to_title(x)) +
+        scale_color_manual(values = colours,
+                           labels = function(x) str_to_title(x)) +
         ylab("Procedures per day") +
         xlab("Date") +
         xlim(win_start-1, today+1) +
+        labs(fill = "", color="") +
         theme(legend.position = "top",
               legend.direction = "horizontal",
               legend.text = element_text(size = 12))
 
+
     })
+
+    output$cath_lab_activity_table <- renderTable({
+
+      grouping <- as.character(input$cathlab_activity_grouping_variable)
+
+      # Require a click event to have happened
+      req(input$cath_lab_activity_plot_brush)
+      # Get the rows of the data frame based on the click info
+      brushedPoints(df    = cath_lab_activity_data,
+                    brush = input$cath_lab_activity_plot_brush,
+                    xvar  = "date",
+                    yvar  = "count") %>%
+        # filter for the grouping being shown, if not "all" of the procedures
+        {if(grouping!="all") filter(., .data$procedure_type==grouping) else .} |>
+        # Mutate for nice formatting
+        mutate(date = format(as.Date(.data$date), format="%d-%m-%Y")) |>
+        # Rename table column names for nice formatting
+        select("Date"      = .data$date,
+               "Procedure" = .data$procedure_type,
+               "Count"     = .data$count)
+    })
+
     output$cath_lab_waiting_time <- renderPlot({
-      shinipsum::random_ggplot()
+      #shinipsum::random_ggplot()
     })
     output$cath_lab_proc_to_dis_time <- renderPlot({
-      shinipsum::random_ggplot()
+      #shinipsum::random_ggplot()
     })
 
   })
