@@ -8,7 +8,7 @@
 # set.seed(1)
 #
 # n <- 200
-# consultant_names <- c("Barman", "Nisbet", "Duncan", "Thomas", "Diab")
+# consultant_names <- c("Barman", "Nisbet", "Duncan", "Thomas", "Diab", "Johnson")
 # procedure_types <- c("angiogram", "pacemaker", "ablation", "crt")
 # wards <- c("c705", "c805", "c708", "ccu", "cicu")
 #
@@ -72,7 +72,7 @@
 # dbWriteTable(con, "orders", orders, overwrite=TRUE)
 # dbWriteTable(con, "procedures", procedures, overwrite=TRUE)
 # dbDisconnect(con)
-#
+
 
 
 
